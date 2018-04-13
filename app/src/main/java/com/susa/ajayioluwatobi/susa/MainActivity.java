@@ -3,6 +3,7 @@ package com.susa.ajayioluwatobi.susa;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,11 +33,12 @@ public class MainActivity extends AppCompatActivity {
     private LoginButton loginButton;
     private CallbackManager callbackManager;
     private TextView info;
-
+    private static int SPLASH_TIME_OUT= 4000;
     private Button RegisterButton;
     private TextView LoginText;
     private EditText Email;
     private EditText PasswordText;
+
 
     private ProgressDialog progressDialog;
     private FirebaseAuth firebaseAuth;
@@ -57,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
         PasswordText = (EditText) findViewById(R.id.login_Password);
         progressDialog= new ProgressDialog(this);
         firebaseAuth= FirebaseAuth.getInstance();
+
+
+
+
 
 
         info= findViewById(R.id.info);

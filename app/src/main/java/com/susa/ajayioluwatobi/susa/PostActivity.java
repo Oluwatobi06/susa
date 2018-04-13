@@ -1,6 +1,8 @@
 package com.susa.ajayioluwatobi.susa;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -8,13 +10,21 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
 
 public class PostActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
@@ -28,6 +38,26 @@ public class PostActivity extends AppCompatActivity implements AdapterView.OnIte
     private Spinner location;
     private boolean location_assert= false;
     private String city;
+    private Button mSelectImage;
+    private StorageReference mStorage;
+    private static final int GALLERY_INTENT= 2;
+    private ImageView image_1;
+    private ImageView image_2;
+    private ImageView image_3;
+
+    Uri post_image;
+
+
+
+    boolean image1= false;
+    boolean image2= false;
+    boolean image3= false;
+
+
+    private ProgressDialog mProgressDialog;
+
+
+
 
 
     @Override
@@ -42,6 +72,28 @@ public class PostActivity extends AppCompatActivity implements AdapterView.OnIte
         firebaseAuth= FirebaseAuth.getInstance();
         location = (Spinner) findViewById(R.id.location_spinner);
         location.setOnItemSelectedListener((AdapterView.OnItemSelectedListener) this);
+        mSelectImage= (Button) findViewById(R.id.upload_image) ;
+
+        image_1= (ImageView) findViewById(R.id.image_1);
+        image_2=  (ImageView)   findViewById(R.id.image_2);
+        image_3=    (ImageView) findViewById(R.id.image_3);
+
+
+
+        mProgressDialog = new ProgressDialog(this);
+
+
+        mStorage= FirebaseStorage.getInstance().getReference();
+
+        mSelectImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent= new Intent(Intent.ACTION_PICK);
+                intent.setType("image/*");
+                startActivityForResult(intent,GALLERY_INTENT);
+            }
+        });
+
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.location, android.R.layout.simple_spinner_item);
@@ -95,17 +147,58 @@ public class PostActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==GALLERY_INTENT && resultCode == RESULT_OK){
 
+            mProgressDialog.setMessage("Uploading ...");
+            Uri uri= data.getData();
+            FirebaseUser user = firebaseAuth.getCurrentUser();
 
+            StorageReference filepath= mStorage.child(user.getUid()).child(uri.getLastPathSegment());
 
+            filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    Toast.makeText(PostActivity.this, "Upolad Done", Toast.LENGTH_LONG).show();
+
+                    mProgressDialog.dismiss();
+                    Uri mdownloadUri = taskSnapshot.getDownloadUrl();
+                    if(!image1) {
+                        Picasso.with(PostActivity.this).load(mdownloadUri).fit().centerCrop().into(image_1);
+                      post_image= mdownloadUri;
+
+                        image1= true;
+                    }
+                    else if (!image2){
+                        Picasso.with(PostActivity.this).load(mdownloadUri).fit().centerCrop().into(image_2);
+
+                        image2= true;
+                    }
+                    else if (!image3){
+                        Picasso.with(PostActivity.this).load(mdownloadUri).fit().centerCrop().into(image_3);
+
+                        image3=true;
+                    }
+                    else
+                    {
+                        Toast.makeText(PostActivity.this, "Upolad Limit", Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+
+        }
+    }
 
     private void postLease(){
 
         String addy= address.getText().toString().trim();
         int value= Integer.parseInt(price.getText().toString().trim());
-        String image= "https://images.pexels.com/photos/880481/pexels-photo-880481.jpeg?cs=srgb&dl=arches-architecture-brickwall-880481.jpg&fm=jpg";
+        String temp_image= post_image.toString();
 
-        UserPost userPost= new UserPost(value,addy,image, city);
+
+        UserPost userPost= new UserPost(value,addy,city,temp_image);
 
         FirebaseUser user = firebaseAuth.getCurrentUser();
 

@@ -2,6 +2,7 @@ package com.susa.ajayioluwatobi.susa;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,21 +21,21 @@ import com.squareup.picasso.Picasso;
 import org.w3c.dom.Text;
 
 public class FeedActivity extends AppCompatActivity {
-private RecyclerView mPostList;
-private DatabaseReference mDatabase;
+    private RecyclerView mPostList;
+    private DatabaseReference mDatabase;
     private FirebaseAuth firebaseAuth;
-
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feed);
-        firebaseAuth= FirebaseAuth.getInstance();
+        firebaseAuth = FirebaseAuth.getInstance();
 
-        Intent intent= getIntent();
 
-        mDatabase= FirebaseDatabase.getInstance().getReference();
+        Intent intent = getIntent();
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         FirebaseUser user = firebaseAuth.getCurrentUser();
 
@@ -42,7 +43,7 @@ private DatabaseReference mDatabase;
 
         mDatabase.keepSynced(true);
 
-        mPostList= (RecyclerView) findViewById(R.id.my_recyclerView);
+        mPostList = (RecyclerView) findViewById(R.id.my_recyclerView);
         mPostList.setHasFixedSize(true);
         mPostList.setLayoutManager(new LinearLayoutManager(this));
 
@@ -53,50 +54,60 @@ private DatabaseReference mDatabase;
     @Override
     protected void onStart() {
         super.onStart();
-        FirebaseRecyclerAdapter<UserPost,UserPostHolder> firebaseRecyclerAdapter= new FirebaseRecyclerAdapter<UserPost, UserPostHolder>
-                (UserPost.class,R.layout.post_row,UserPostHolder.class,mDatabase) {
+        FirebaseRecyclerAdapter<UserPost, UserPostHolder> firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<UserPost, UserPostHolder>
+                (UserPost.class, R.layout.post_row, UserPostHolder.class, mDatabase) {
             @Override
             protected void populateViewHolder(UserPostHolder viewHolder, UserPost model, int position) {
 
                 viewHolder.setAddress(model.getAddress());
                 viewHolder.setPrice(model.getPrice());
-                viewHolder.setImage(getApplicationContext() ,model.getAddress());
+                viewHolder.setImage(getApplicationContext(), model.getPost_image());
                 viewHolder.setLocation(model.getLocation());
 
+
+
             }
+
         };
+
 
         mPostList.setAdapter(firebaseRecyclerAdapter);
     }
 
-    public static class UserPostHolder extends RecyclerView.ViewHolder
-    {
+    public static class UserPostHolder extends RecyclerView.ViewHolder {
         View mView;
-        public UserPostHolder(View itemView)
-        {
+
+        public UserPostHolder(View itemView) {
             super(itemView);
-            mView= itemView;
+            mView = itemView;
         }
 
-        public void setAddress(String addy){
-            TextView post_addy= (TextView)mView. findViewById(R.id.post_address);
+        public void setAddress(String addy) {
+            TextView post_addy = (TextView) mView.findViewById(R.id.post_address);
             post_addy.setText(addy);
         }
 
-        public void setPrice(int price){
-            TextView post_addy= (TextView)mView. findViewById(R.id.post_id);
+        public void setPrice(int price) {
+            TextView post_addy = (TextView) mView.findViewById(R.id.post_id);
             post_addy.setText(Integer.toString(price));
         }
 
-        public void setImage(Context ctx,String image){
-            ImageView post_image= (ImageView) mView. findViewById(R.id.post_image);
+        public void setImage(Context ctx, String image) {
+            ImageView post_image = (ImageView) mView.findViewById(R.id.post_image);
             Picasso.with(ctx).load(image).into(post_image);
         }
 
-        public void setLocation(String city){
-            TextView post_city= (TextView)mView. findViewById(R.id.post_location);
+        public void setLocation(String city) {
+            TextView post_city = (TextView) mView.findViewById(R.id.post_location);
             post_city.setText(city);
         }
+
+        public void setButton(View.OnClickListener ContactButton) {
+            TextView post_contact = (TextView) mView.findViewById(R.id.post_contact);
+            post_contact.setOnClickListener(ContactButton);
+        }
+
+
     }
 }
 
